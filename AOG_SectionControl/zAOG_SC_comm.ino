@@ -10,7 +10,6 @@ void getDataFromAOG()
     //get new AOG Data
     //USB and USB if nothing else selected
     if ((SCSet.DataTransViaUSB == 1) || (SCSet.DataTransViaWiFi == 0)) {
-        incomingByteNum = 0;
 
         while (Serial.available())
         {
@@ -28,14 +27,24 @@ void getDataFromAOG()
                 if ((incomingByte == SCSet.DataFromAOGHeader[0]) || (incomingByte == SCSet.SettingsFromAOGHeader[0]))
                 {
                     incomingByte = Serial.read();
-                    if (incomingByte == SCSet.DataFromAOGHeader[1]) { isDataFound = true; }
-                    if (incomingByte == SCSet.SettingsFromAOGHeader[1]) { isSettingFound = true; }
+                    if (incomingByte == SCSet.DataFromAOGHeader[1]) {
+                        isDataFound = true;
+                        DataFromAOG[0] = SCSet.DataFromAOGHeader[0];
+                        DataFromAOG[1] = SCSet.DataFromAOGHeader[1];
+                        incomingByteNum = 2;
+                    }
+                    if (incomingByte == SCSet.SettingsFromAOGHeader[1]) {
+                        isSettingFound = true;
+                        DataFromAOG[0] = SCSet.SettingsFromAOGHeader[0];
+                        DataFromAOG[1] = SCSet.SettingsFromAOGHeader[1];
+                        incomingByteNum = 2;
+                    }
                     if (SCSet.debugmodeDataFromAOG) { Serial.print("data from AOG via USB: "); }
                 }
             }
         }
     }//end USB
-
+    
 
     //WiFi UDP 
     if ((SCSet.DataTransViaWiFi == 1))
@@ -93,7 +102,7 @@ void getDataFromAOG()
     }
 
     //SETTINGS Header has been found, 6 bytes are the settings
-    if (isSettingFound)
+    if (isSettingFound) //actual no rate control in AOG, so not used
     {
         //accumulated volume, 0 it if this is 32700 sent
         float tempf = (float)(DataFromAOG[2] << 8 | DataFromAOG[3]);   //high,low bytes
